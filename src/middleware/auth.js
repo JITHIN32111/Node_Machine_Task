@@ -1,15 +1,19 @@
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken';
 
 export default function (req, res, next) {
     const token = req.header('Authorization');
-    console.log(token);
-    if (!token) return res.status(401).json({ msg: 'No token, authorization denied' });
+
+    if (!token) {
+        return res.status(401).json({ msg: 'No token, authorization denied' });
+    }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token.replace('Bearer ', ''), process.env.JWT_SECRET);
+        console.log('Decoded Token:', decoded);
         req.user = decoded.user;
         next();
     } catch (err) {
-        res.status(401).json({ msg: 'Token is not valid' });
+        console.error('Token verification error:', err.message);
+        return res.status(401).json({ msg: 'Token is not valid' });
     }
 };
